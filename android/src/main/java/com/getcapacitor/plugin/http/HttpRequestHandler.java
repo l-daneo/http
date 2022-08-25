@@ -21,6 +21,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -127,11 +128,11 @@ public class HttpRequestHandler {
             String initialQueryBuilderStr = initialQuery == null ? "" : initialQuery;
 
             Iterator<String> keys = params.keys();
-            
+
             if (!keys.hasNext()) {
                 return this;
             }
-            
+
             StringBuilder urlQueryBuilder = new StringBuilder(initialQueryBuilderStr);
 
             // Build the new query string
@@ -167,7 +168,13 @@ public class HttpRequestHandler {
                 URI encodedUri = new URI(uri.getScheme(), uri.getAuthority(), uri.getPath(), urlQuery, uri.getFragment());
                 this.url = encodedUri.toURL();
             } else {
-                String unEncodedUrlString = uri.getScheme() + "://" + uri.getAuthority() + uri.getPath() + ((!urlQuery.equals("")) ? "?" + urlQuery : "") + ((uri.getFragment() != null) ? uri.getFragment() : "");
+                String unEncodedUrlString =
+                    uri.getScheme() +
+                    "://" +
+                    uri.getAuthority() +
+                    uri.getPath() +
+                    ((!urlQuery.equals("")) ? "?" + urlQuery : "") +
+                    ((uri.getFragment() != null) ? uri.getFragment() : "");
                 this.url = new URL(unEncodedUrlString);
             }
 
@@ -483,6 +490,7 @@ public class HttpRequestHandler {
         String name = call.getString("name", "file");
         Integer connectTimeout = call.getInt("connectTimeout");
         Integer readTimeout = call.getInt("readTimeout");
+        JSONArray filePointers = call.getArray("files");
         JSObject headers = call.getObject("headers");
         JSObject params = call.getObject("params");
         JSObject data = call.getObject("data");
@@ -490,7 +498,17 @@ public class HttpRequestHandler {
 
         URL url = new URL(urlString);
 
+        Map<String, File> files = new HashMap<>();
         File file = FilesystemUtils.getFileObject(context, filePath, fileDirectory);
+        files.put(name, file);
+        for (int i = 0; i < filePointers.length(); i++) {
+            JSONObject filePointer = filePointers.getJSONObject(i);
+            String fName = JSONObjectUtils.getString(filePointer, "name", String.format("file%s", i));
+            String fPath = filePointer.getString("filePath");
+            String fDirectory = JSONObjectUtils.getString(filePointer, "fileDirectory", FilesystemUtils.DIRECTORY_DOCUMENTS);
+            File fFile = FilesystemUtils.getFileObject(context, fPath, fDirectory);
+            files.put(fName, fFile);
+        }
 
         HttpURLConnectionBuilder connectionBuilder = new HttpURLConnectionBuilder()
             .setUrl(url)
@@ -505,7 +523,7 @@ public class HttpRequestHandler {
         connection.setDoOutput(true);
 
         FormUploader builder = new FormUploader(connection.getHttpConnection());
-        builder.addFilePart(name, file, data);
+        builder.addFilePart(files, data);
         builder.finish();
 
         return buildResponse(connection, responseType);
