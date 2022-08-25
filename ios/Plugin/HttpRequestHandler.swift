@@ -122,23 +122,26 @@ class HttpRequestHandler {
         return output
     }
 
-    private static func generateMultipartForm(_ url: URL, _ name: String, _ boundary: String, _ body: [String:Any]) throws -> Data {
+    private static func generateMultipartForm(_ urls: [String: URL], _ boundary: String, _ body: [String:Any]) throws -> Data {
         let strings: [String: String] = body.compactMapValues { any in
             any as? String
         }
 
         var data = Data()
-
-        let fileData = try Data(contentsOf: url)
-
-        let fname = url.lastPathComponent
-        let mimeType = FilesystemUtils.mimeTypeForPath(path: fname)
-        data.append("\r\n--\(boundary)\r\n".data(using: .utf8)!)
-        data.append(
-          "Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(fname)\"\r\n".data(
-            using: .utf8)!)
-        data.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
-        data.append(fileData)
+        
+        for (name, url) in urls {
+            let fileData = try Data(contentsOf: url)
+            
+            let fname = url.lastPathComponent
+            let mimeType = FilesystemUtils.mimeTypeForPath(path: fname)
+            data.append("\r\n--\(boundary)\r\n".data(using: .utf8)!)
+            data.append(
+              "Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(fname)\"\r\n".data(
+                using: .utf8)!)
+            data.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
+            data.append(fileData)
+        }
+        
         strings.forEach { key, value in
             data.append("\r\n--\(boundary)\r\n".data(using: .utf8)!)
             data.append("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n".data(using: .utf8)!)
@@ -209,11 +212,23 @@ class HttpRequestHandler {
         let responseType = call.getString("responseType") ?? "text";
         let connectTimeout = call.getDouble("connectTimeout");
         let readTimeout = call.getDouble("readTimeout");
+        let filePointers = call.getArray("files") ?? JSArray();
 
         guard let urlString = call.getString("url") else { throw URLError(.badURL) }
         guard let filePath = call.getString("filePath") else { throw URLError(.badURL) }
+        var files: [String: URL] = [:];
         guard let fileUrl = FilesystemUtils.getFileUrl(filePath, fileDirectory) else { throw URLError(.badURL) }
-
+        files[name] = fileUrl;
+        for i in filePointers.indices {
+            let filePointer = filePointers[i] as! [String: Any];
+            let fName = (filePointer["name"] ?? String(format: "file%s", i)) as! String;
+            guard let fPath = filePointer["filePath"] as? String else { throw URLError(.badURL) };
+            let fDirectory = filePointer["fileDirectory"] as? String ?? "DOCUMENTS";
+            guard let fFileUrl = FilesystemUtils.getFileUrl(fPath, fDirectory) else { throw URLError(.badURL) }
+            files[fName] = fFileUrl;
+        }
+        
+        
         let request = try! CapacitorHttpRequestBuilder()
             .setUrl(urlString)
             .setMethod(method)
@@ -230,7 +245,7 @@ class HttpRequestHandler {
         let boundary = UUID().uuidString
         request.setContentType("multipart/form-data; boundary=\(boundary)");
 
-        guard let form = try? generateMultipartForm(fileUrl, name, boundary, body) else { throw URLError(.cannotCreateFile) }
+        guard let form = try? generateMultipartForm(files, boundary, body) else { throw URLError(.cannotCreateFile) }
 
         let urlRequest = request.getUrlRequest();
         let task = URLSession.shared.uploadTask(with: urlRequest, from: form) { (data, response, error) in
