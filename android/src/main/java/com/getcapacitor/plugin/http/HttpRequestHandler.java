@@ -500,7 +500,7 @@ public class HttpRequestHandler {
 
         Map<String, File> files = new HashMap<>();
         File file = FilesystemUtils.getFileObject(context, filePath, fileDirectory);
-        files.put(name, file);
+        if (file != null) files.put(name, file);
         for (int i = 0; i < filePointers.length(); i++) {
             JSONObject filePointer = filePointers.getJSONObject(i);
             String fName = JSONObjectUtils.getString(filePointer, "name", String.format("file%s", i));
