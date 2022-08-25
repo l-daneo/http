@@ -107,6 +107,10 @@ export interface HttpFilesystemFile {
    */
   name: string;
   /**
+   * For uploading a file on the web, a JavaScript Blob to upload
+   */
+  blob?: Blob;
+  /**
    * For uploading a file natively, the path to the file on disk to upload
    */
   filePath: string;
@@ -123,24 +127,6 @@ export interface HttpUploadFileOptions extends HttpOptions {
    * The URL to upload the file to
    */
   url: string;
-  /**
-   * The field name to upload the file with
-   */
-  name: string;
-  /**
-   * For uploading a file on the web, a JavaScript Blob to upload
-   */
-  blob?: Blob;
-  /**
-   * For uploading a file natively, the path to the file on disk to upload
-   */
-  filePath?: string;
-  /**
-   * Optionally, the directory to look for the file in.
-   *
-   * If this option is used, filePath can be a relative path rather than absolute
-   */
-  fileDirectory?: Directory;
   /**
    * Optionally, a list of file to upload.
    */

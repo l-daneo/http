@@ -143,7 +143,10 @@ export class HttpWeb extends WebPlugin implements HttpPlugin {
     options: HttpUploadFileOptions,
   ): Promise<HttpUploadFileResult> => {
     const formData = new FormData();
-    formData.append(options.name, options.blob || 'undefined');
+    const files = options.files || [];
+    for (const opt of files) {
+      formData.append(opt.name, opt.blob || 'undefined');
+    }
     const fetchOptions = {
       ...options,
       body: formData,

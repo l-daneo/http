@@ -485,9 +485,6 @@ public class HttpRequestHandler {
     public static JSObject uploadFile(PluginCall call, Context context) throws IOException, URISyntaxException, JSONException {
         String urlString = call.getString("url");
         String method = call.getString("method", "POST").toUpperCase();
-        String filePath = call.getString("filePath");
-        String fileDirectory = call.getString("fileDirectory", FilesystemUtils.DIRECTORY_DOCUMENTS);
-        String name = call.getString("name", "file");
         Integer connectTimeout = call.getInt("connectTimeout");
         Integer readTimeout = call.getInt("readTimeout");
         JSONArray filePointers = call.getArray("files");
@@ -499,14 +496,14 @@ public class HttpRequestHandler {
         URL url = new URL(urlString);
 
         Map<String, File> files = new HashMap<>();
-        File file = FilesystemUtils.getFileObject(context, filePath, fileDirectory);
-        if (file != null) files.put(name, file);
         for (int i = 0; i < filePointers.length(); i++) {
             JSONObject filePointer = filePointers.getJSONObject(i);
             String fName = JSONObjectUtils.getString(filePointer, "name", String.format("file%s", i));
             String fPath = filePointer.getString("filePath");
             String fDirectory = JSONObjectUtils.getString(filePointer, "fileDirectory", FilesystemUtils.DIRECTORY_DOCUMENTS);
             File fFile = FilesystemUtils.getFileObject(context, fPath, fDirectory);
+            if (fFile == null) throw new RuntimeException("File cannot be null");
+            if (!fFile.exists()) throw new RuntimeException("File does not exist");
             files.put(fName, fFile);
         }
 

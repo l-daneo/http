@@ -158,7 +158,7 @@ class HttpRequestHandler {
         guard let method = httpMethod ?? call.getString("method") else { throw URLError(.dataNotAllowed) }
 
         let headers = (call.getObject("headers") ?? [:]) as! [String: String]
-        let params = (call.getObject("params") ?? [:]) as! [String: Any]
+        let params = (call.getObject("params") ?? [:]) as [String: Any]
         let responseType = call.getString("responseType") ?? "text";
         let connectTimeout = call.getDouble("connectTimeout");
         let readTimeout = call.getDouble("readTimeout");
@@ -203,11 +203,9 @@ class HttpRequestHandler {
     }
 
     public static func upload(_ call: CAPPluginCall) throws {
-        let name = call.getString("name") ?? "file"
         let method = call.getString("method") ?? "POST"
-        let fileDirectory = call.getString("fileDirectory") ?? "DOCUMENTS"
         let headers = (call.getObject("headers") ?? [:]) as! [String: String]
-        let params = (call.getObject("params") ?? [:]) as! [String: Any]
+        let params = (call.getObject("params") ?? [:]) as [String: Any]
         let body = (call.getObject("data") ?? [:]) as [String: Any]
         let responseType = call.getString("responseType") ?? "text";
         let connectTimeout = call.getDouble("connectTimeout");
@@ -215,10 +213,8 @@ class HttpRequestHandler {
         let filePointers = call.getArray("files") ?? JSArray();
 
         guard let urlString = call.getString("url") else { throw URLError(.badURL) }
-        guard let filePath = call.getString("filePath") else { throw URLError(.badURL) }
+        
         var files: [String: URL] = [:];
-        guard let fileUrl = FilesystemUtils.getFileUrl(filePath, fileDirectory) else { throw URLError(.badURL) }
-        files[name] = fileUrl;
         for i in filePointers.indices {
             let filePointer = filePointers[i] as! [String: Any];
             let fName = (filePointer["name"] ?? String(format: "file%s", i)) as! String;
@@ -265,7 +261,7 @@ class HttpRequestHandler {
         let method = call.getString("method") ?? "GET"
         let fileDirectory = call.getString("fileDirectory") ?? "DOCUMENTS"
         let headers = (call.getObject("headers") ?? [:]) as! [String: String]
-        let params = (call.getObject("params") ?? [:]) as! [String: Any]
+        let params = (call.getObject("params") ?? [:]) as [String: Any]
         let connectTimeout = call.getDouble("connectTimeout");
         let readTimeout = call.getDouble("readTimeout");
         let progress = call.getBool("progress") ?? false
