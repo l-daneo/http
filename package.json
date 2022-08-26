@@ -1,6 +1,6 @@
 {
-  "name": "@capacitor-community/http",
-  "version": "1.4.1",
+  "name": "@capacitor-betacom/http",
+  "version": "1.0.1",
   "description": "A native HTTP plugin for CORS-free requests and file transfers",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
@@ -15,6 +15,9 @@
     "prettier": "prettier \"**/*.{css,html,ts,js,java}\"",
     "prepublishOnly": "npm run build && npm run ios:build",
     "prepare": "husky install"
+  },
+  "publishConfig": {
+    "registry": "http://192.168.0.144:4873/"
   },
   "author": "Max Lynch <max@ionic.io>, Thomas Vidas <thomas@ionic.io>",
   "license": "MIT",
@@ -45,7 +48,7 @@
     "dist/",
     "ios/",
     "android/",
-    "CapacitorCommunityHttp.podspec"
+    "CapacitorBetacomHttp.podspec"
   ],
   "keywords": [
     "capacitor",
@@ -63,9 +66,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/capacitor-community/http"
+    "url": "https://github.com/l-daneo/http"
   },
   "bugs": {
-    "url": "https://github.com/capacitor-community/http/issues"
+    "url": "https://github.com/l-daneo/http/issues"
   }
 }
