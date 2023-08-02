@@ -101,11 +101,7 @@ export interface HttpDownloadFileOptions extends HttpOptions {
   progress?: Boolean;
 }
 
-export interface HttpUploadFileOptions extends HttpOptions {
-  /**
-   * The URL to upload the file to
-   */
-  url: string;
+export interface HttpFilesystemFile {
   /**
    * The field name to upload the file with
    */
@@ -117,13 +113,24 @@ export interface HttpUploadFileOptions extends HttpOptions {
   /**
    * For uploading a file natively, the path to the file on disk to upload
    */
-  filePath?: string;
+  filePath: string;
   /**
    * Optionally, the directory to look for the file in.
    *
    * If this option is used, filePath can be a relative path rather than absolute
    */
   fileDirectory?: Directory;
+}
+
+export interface HttpUploadFileOptions extends HttpOptions {
+  /**
+   * The URL to upload the file to
+   */
+  url: string;
+  /**
+   * Optionally, a list of file to upload.
+   */
+  files?: Array<HttpFilesystemFile>;
 }
 
 export interface HttpCookie {

@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URLConnection;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.UUID;
 import org.json.JSONException;
 
@@ -92,37 +93,38 @@ public class FormUploader {
     /**
      * Adds a upload file section to the request
      *
-     * @param fieldName  name attribute in <input type="file" name="..." />
-     * @param uploadFile a File to be uploaded
+     * @param files a map of String (name attribute in <input type="file" name="...") and corresponding File to be uploaded
      * @throws IOException Thrown if unable to parse the OutputStream of the connection
      */
-    public void addFilePart(String fieldName, File uploadFile, JSObject data) throws IOException {
-        String fileName = uploadFile.getName();
-        prWriter
-            .append(LINE_FEED)
-            .append("--")
-            .append(boundary)
-            .append(LINE_FEED)
-            .append("Content-Disposition: form-data; name=\"")
-            .append(fieldName)
-            .append("\"; filename=\"")
-            .append(fileName)
-            .append("\"")
-            .append(LINE_FEED)
-            .append("Content-Type: ")
-            .append(URLConnection.guessContentTypeFromName(fileName))
-            .append(LINE_FEED)
-            .append(LINE_FEED);
-        prWriter.flush();
+    public void addFilePart(Map<String, File> files, JSObject data) throws IOException {
+        for (Map.Entry<String, File> fileEntry : files.entrySet()) {
+            String fileName = fileEntry.getValue().getName();
+            prWriter
+                .append(LINE_FEED)
+                .append("--")
+                .append(boundary)
+                .append(LINE_FEED)
+                .append("Content-Disposition: form-data; name=\"")
+                .append(fileEntry.getKey())
+                .append("\"; filename=\"")
+                .append(fileName)
+                .append("\"")
+                .append(LINE_FEED)
+                .append("Content-Type: ")
+                .append(URLConnection.guessContentTypeFromName(fileName))
+                .append(LINE_FEED)
+                .append(LINE_FEED);
+            prWriter.flush();
 
-        FileInputStream inputStream = new FileInputStream(uploadFile);
-        byte[] buffer = new byte[4096];
-        int bytesRead;
-        while ((bytesRead = inputStream.read(buffer)) != -1) {
-            outputStream.write(buffer, 0, bytesRead);
+            FileInputStream inputStream = new FileInputStream(fileEntry.getValue());
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+            outputStream.flush();
+            inputStream.close();
         }
-        outputStream.flush();
-        inputStream.close();
 
         if (data != null) {
             Iterator<String> keyIterator = data.keys();
