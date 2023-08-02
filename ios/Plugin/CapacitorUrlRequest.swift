@@ -42,7 +42,7 @@ public class CapacitorUrlRequest: NSObject, URLSessionTaskDelegate {
         }
         
         obj.keys.forEach { (key: String) in
-            components.queryItems?.append(URLQueryItem(name: key, value: "\(obj[key] ?? "")"))
+            components.queryItems?.append(URLQueryItem(name: key, value: "\(obj[key] ?? "")".replacingOccurrences(of: "&", with: "%26")))
         }
         
         
